@@ -1,0 +1,1 @@
+https://netping.atlassian.net/wiki/spaces/NW/pages/3524067380/EPIC12+OWRT+GPIO+Protocol+GPIO
