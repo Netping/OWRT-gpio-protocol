@@ -1,0 +1,5 @@
+config info 'GPIO'
+	option gpio0 'in'
+	option gpio1 'out'
+	option gpio2 'out'
+	option gpio3 'in'
