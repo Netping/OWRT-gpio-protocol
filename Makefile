@@ -6,7 +6,7 @@ PKG_NAME="OWRT_GPIO_Protocol"
 PKG_VERSION="Epic12.V1.S1"
 PKG_RELEASE=1
 
-CONF_FILE=
+CONF_FILE=gpioconf
 CONF_DIR=/etc/config/
 
 MODULE_FILES=gpioproto.py

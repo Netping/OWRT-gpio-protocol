@@ -1,5 +1,30 @@
-config info 'GPIO'
-	option gpio0 'in'
-	option gpio1 'out'
-	option gpio2 'out'
-	option gpio3 'in'
+config globals 'globals'
+	list protocol 'D_triger_IO.Д-триггер-Ввод/Вывод'
+	list protocol 'D_triger_Relay.Д-триггер-реле'
+	list protocol 'Fake_IO.Имитация'
+
+config device 'prototype'
+	option name 'prototype'
+	option protocol 'Fake_IO'
+	option sig_PIN1 'GPIO1'
+
+config device
+	option name 'Relay 1'
+	option protocol 'D_triger_Relay'
+	option sig_RELAY_INT 'GPIO1-input'
+	option sig_TRIG_CLK 'GPIO2-input'
+
+config device
+	option name 'Relay 2'
+	option protocol 'D_triger_Relay'
+	option sig_RELAY_INT 'GPIO3-input'
+	option sig_TRIG_CLK 'GPIO4-input'
+
+config device
+	option name 'Device IO 1'
+	option protocol 'D_triger_IO'
+	option sig_TRIG 'GPIO5-input'
+	option sig_PULL_UP 'GPIO6-input'
+	option sig_OUT_UP 'GPIO7-input'
+	option sig_OUT_DOWN 'GPIO8-input'
+	option sig_IN 'GPIO9-input'
