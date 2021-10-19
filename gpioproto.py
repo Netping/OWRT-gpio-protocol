@@ -1,26 +1,116 @@
 import ubus
-import enum
 import os
 from threading import Thread
 from threading import Lock
+from time import sleep
 
 
 
-
-class protocol_type(enum.Enum):
-    empty = 0
-    IO = 1
-    Relay = 2
-    Fake_IO = 3
 
 class device:
     name = ""
-    protocol = protocol_type.empty
+    protocol = None
     pins = []
 
 class protocols:
-    #TODO
-    pass
+    def configure(pins, values):
+        pass
+
+    def read(pins):
+        ret = []
+
+        for p in pins:
+            if p['direction'] == 'input':
+                e = {}
+
+                with open("/sys/class/gpio/gpio" + p['gpio'] + "/value", "r") as f:
+                    e[p['name']] = f.read()
+
+                ret.append(e)
+
+        return ret
+
+class D_Triger_IO_proto(protocols):
+    def configure(pins, value):
+        pass
+
+    def read(pins):
+        super().read(pins)
+
+class D_triger_Relay_proto(protocols):
+    def configure(pins, value):
+        trig_gpio = None
+
+        #get TRIG_CLK gpio
+        for p in pins:
+            if p['name'] == 'TRIG_CLK':
+                trig_gpio = p['gpio']
+                break
+        #search pin
+        keys = [*value.keys()]
+        for p in pins:
+            if p['name'] in keys and p['name'] != 'TRIG_CLK':
+                if p['direction'] == 'output':
+                    v = bool(int(value[p['name']]))
+                    s = '0'
+
+                    if v:
+                        s = '1'
+
+                    if os.system("echo \"" + s + "\" > /sys/class/gpio/gpio" + p['gpio'] + "/value"):
+                        print("Error: can't set value for gpio " + p['gpio'])
+
+                    if os.system("echo \"1\" > /sys/class/gpio/gpio" + trig_gpio + "/value"):
+                        print("Error: can't set value for gpio " + trig_gpio)
+
+                    sleep(0.1)
+
+                    if os.system("echo \"0\" > /sys/class/gpio/gpio" + trig_gpio + "/value"):
+                        print("Error: can't set value for gpio " + trig_gpio)
+
+                break
+
+    def read(pins):
+        super().read(pins)
+
+class Fake_IO_proto(protocols):
+    def configure(pins, value):
+        print("Pins")
+        print(pins)
+        print("\n")
+        print(value)
+        print("\n")
+
+        #search pin
+        keys = [*value.keys()]
+        for p in pins:
+            if p['name'] in keys:
+                if p['direction'] == 'output':
+                    v = bool(int(value[p['name']]))
+                    s = '0'
+
+                    if v:
+                        s = '1'
+
+                    print("echo \"" + s + "\" > /sys/class/gpio/gpio" + p['gpio'] + "/value")
+
+                break
+
+    def read(pins):
+        ret = []
+
+        for p in pins:
+            if p['direction'] == 'input':
+                e = {}
+
+                #with open("/sys/class/gpio/gpio" + p['gpio'] + "/value", "r") as f:
+                #    e[p['name']] = f.read()
+                print("read " + "/sys/class/gpio/gpio" + p['gpio'] + "/value " + "to e[p['name']]")
+                e[p['name']] = '0'
+
+                ret.append(e)
+
+        return ret
 
 class GPIOProto:
     hardwareConfName = 'hardwareconf'
@@ -32,9 +122,9 @@ class GPIOProto:
     devices = []
 
     protocol_type_map = { 
-                            'D_triger_IO' : protocol_type.IO,
-                            'D_triger_Relay' : protocol_type.Relay,
-                            'Fake_IO' : protocol_type.Fake_IO 
+                            'D_triger_IO' : D_Triger_IO_proto,
+                            'D_triger_Relay' : D_triger_Relay_proto,
+                            'Fake_IO' : Fake_IO_proto
                         }
 
     direction_map = {
@@ -51,26 +141,38 @@ class GPIOProto:
 
             self.__applyConfig()
 
+            if not GPIOProto.configThread:
+                self.__startConfigThread()
+
             GPIOProto.pollThread = Thread(target=self.__poll, args=())
             GPIOProto.pollThread.start()
         except Exception:
             print(Exception)
 
-    def readGPIO(self, index):
-        if not GPIOProto.configThread:
-            self.__startConfigThread()
+    def readGPIO(self, devicename):
+        ret = None
 
-        #TODO
+        GPIOProto.mutex.acquire()
 
-    def writeGPIO(self, index, value):
-        if not GPIOProto.configThread:
-            self.__startConfigThread()
+        dev = None
+        for d in GPIOProto.devices:
+            if d.name == devicename:
+                dev = d
+                break
 
-        t = { 'gpio' : index, 'value' : value }
+        if dev:
+            ret = dev.protocol.read(dev.pins)
 
-        GPIO.mutex.acquire()
+        GPIOProto.mutex.release()
+
+        return ret
+
+    def writeGPIO(self, devicename, value):
+        t = { 'name' : devicename, 'value' : value }
+
+        GPIOProto.mutex.acquire()
         GPIOProto.task_list.insert(0, t)
-        GPIO.mutex.release()
+        GPIOProto.mutex.release()
 
     def __unexportAll(self):
         #TODO unexport all GPIOs from system
@@ -111,20 +213,31 @@ class GPIOProto:
                         pin['direction'] = confdict[p].split('-')[1]
 
                         #Do settings pin
-                        #export new pin
-                        if os.system("echo \"" + pin['gpio'] + "\" > /sys/class/gpio/export"):
-                            print("Error: can't export new pin " + pin['gpio'])
+                        if e.protocol != Fake_IO_proto:
+                            #export new pin
+                            if os.system("echo \"" + pin['gpio'] + "\" > /sys/class/gpio/export"):
+                                print("Error: can't export new pin " + pin['gpio'])
 
-                        #set direction
-                        direction = GPIOProto.direction_map[pin['direction']]
-                        if direction != 'other':
-                            if os.system("echo \"" + direction + "\" > /sys/class/gpio/gpio" + pin['gpio'] + "/direction"):
-                                print("Error: can't set direction to " + direction + "for gpio" + pin['gpio'])
+                            #set direction
+                            direction = GPIOProto.direction_map[pin['direction']]
+                            if direction != 'other':
+                                if os.system("echo \"" + direction + "\" > /sys/class/gpio/gpio" + pin['gpio'] + "/direction"):
+                                    print("Error: can't set direction to " + direction + "for gpio" + pin['gpio'])
 
-                        #set value to 0 if it output
-                        if direction == 'out':
-                            if os.system("echo \"0\" > /sys/class/gpio/gpio" + pin['gpio'] + "/value"):
-                                print("Error: can't set output gpio" + pin['gpio'] + "to low")
+                            #set value to 0 if it output
+                            if direction == 'out':
+                                if os.system("echo \"0\" > /sys/class/gpio/gpio" + pin['gpio'] + "/value"):
+                                    print("Error: can't set output gpio" + pin['gpio'] + "to low")
+                        else:
+                            print("echo \"" + pin['gpio'] + "\" > /sys/class/gpio/export")
+                            #set direction
+                            direction = GPIOProto.direction_map[pin['direction']]
+                            if direction != 'other':
+                                print("echo \"" + direction + "\" > /sys/class/gpio/gpio" + pin['gpio'] + "/direction")
+
+                            #set value to 0 if it output
+                            if direction == 'out':
+                                print("echo \"0\" > /sys/class/gpio/gpio" + pin['gpio'] + "/value")
 
                         e.pins.append(pin)
 
@@ -154,9 +267,16 @@ class GPIOProto:
                 GPIOProto.mutex.acquire()
 
                 t = GPIOProto.task_list.pop()
-                gpio = t['gpio']
+                devicename = t['name']
                 value = t['value']
 
-                self.__Write(gpio, value)
+                dev = None
+                for d in GPIOProto.devices:
+                    if d.name == devicename:
+                        dev = d
+                        break
+
+                if dev:
+                    dev.protocol.configure(dev.pins, value)
 
                 GPIOProto.mutex.release()
