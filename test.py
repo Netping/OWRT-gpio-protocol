@@ -8,7 +8,8 @@ from gpioproto import *
 def main():
     gpio = GPIOProto()
 
-    #gpio.writeGPIO('Relay 2', { 'RELAY_INT' : '1' })
+    gpio.writeGPIO('Relay 1', 'ON')
+    gpio.writeGPIO('Relay 2', 'ON')
     ret = gpio.readGPIO('Device IO 1')
 
     print('Ret is:')

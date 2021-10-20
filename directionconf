@@ -1,0 +1,3 @@
+config info 'Settings'
+	option gpio11 'output'
+	option gpio12 'output'
