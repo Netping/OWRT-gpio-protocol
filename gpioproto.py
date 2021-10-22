@@ -32,10 +32,93 @@ class protocols:
 
 class D_Triger_IO_proto(protocols):
     def configure(pins, value):
-        pass
+        trig_gpio = None
+        out_up_gpio = None
+        out_down_gpio = None
+
+        #get gpio's from pins
+        for p in pins:
+            if trig_gpio and out_up_gpio and out_down_gpio:
+                break
+
+            if p['name'] == 'OUT_UP' and p['direction'] == 'out':
+                out_up_gpio = p['gpio']
+
+            if p['name'] == 'OUT_DOWN' and p['direction'] == 'out':
+                out_down_gpio = p['gpio']
+
+            if p['name'] == 'TRIG' and p['direction'] == 'out':
+                trig_gpio = p['gpio']
+
+        if not (trig_gpio and out_up_gpio and out_down_gpio):
+            print("Error: wrong ping configuration! Check gpioconf for device")
+            return
+
+        if value.upper() == 'ON':
+            if os.system("echo \"1\" > /sys/class/gpio/gpio" + out_up_gpio + "/value"):
+                print("Error: can't set value for gpio " + out_up_gpio)
+
+            if os.system("echo \"0\" > /sys/class/gpio/gpio" + out_down_gpio + "/value"):
+                print("Error: can't set value for gpio " + out_down_gpio)
+
+        elif value.upper() == 'OFF':
+            if os.system("echo \"0\" > /sys/class/gpio/gpio" + out_up_gpio + "/value"):
+                print("Error: can't set value for gpio " + out_up_gpio)
+
+            if os.system("echo \"1\" > /sys/class/gpio/gpio" + out_down_gpio + "/value"):
+                print("Error: can't set value for gpio " + out_down_gpio)
+        else:
+            print('Error: unknown value')
+            return
+
+        #turn on CLK for 100ms
+        if os.system("echo \"1\" > /sys/class/gpio/gpio" + trig_gpio + "/value"):
+            print("Error: can't set value for gpio " + trig_gpio)
+
+        sleep(0.1)
+
+        if os.system("echo \"0\" > /sys/class/gpio/gpio" + trig_gpio + "/value"):
+            print("Error: can't set value for gpio " + trig_gpio)
 
     def read(pins):
-        super().read(pins)
+        trig_gpio = None
+        pull_up_gpio = None
+
+        #get gpio's from pins
+        for p in pins:
+            if trig_gpio and pull_up_gpio:
+                break
+
+            if p['name'] == 'PULL_UP' and p['direction'] == 'out':
+                pull_up_gpio = p['gpio']
+
+            if p['name'] == 'TRIG' and p['direction'] == 'out':
+                trig_gpio = p['gpio']
+
+        if not (trig_gpio and pull_up_gpio):
+            print("Error: wrong pin reading! Check gpioconf for device")
+            return
+
+        #init reading
+        if os.system("echo \"1\" > /sys/class/gpio/gpio" + pull_up_gpio + "/value"):
+            print("Error: can't set value for gpio " + pull_up_gpio)
+
+        #turn on CLK for 100ms
+        if os.system("echo \"1\" > /sys/class/gpio/gpio" + trig_gpio + "/value"):
+            print("Error: can't set value for gpio " + trig_gpio)
+
+        sleep(0.1)
+
+        if os.system("echo \"0\" > /sys/class/gpio/gpio" + trig_gpio + "/value"):
+            print("Error: can't set value for gpio " + trig_gpio)
+
+        ret = super().read(pins)
+
+        #deinit reading
+        if os.system("echo \"0\" > /sys/class/gpio/gpio" + pull_up_gpio + "/value"):
+            print("Error: can't set value for gpio " + pull_up_gpio)
+
+        return ret
 
 class D_triger_Relay_proto(protocols):
     def configure(pins, value):
@@ -53,7 +136,7 @@ class D_triger_Relay_proto(protocols):
             if p['name'] == 'TRIG_CLK' and p['direction'] == 'out':
                 trig_gpio = p['gpio']
 
-        if not (trig_gpio or relay_gpio):
+        if not (trig_gpio and relay_gpio):
             print("Error: wrong ping configuration! Check gpioconf for device")
             return
 
@@ -78,7 +161,7 @@ class D_triger_Relay_proto(protocols):
             print("Error: can't set value for gpio " + trig_gpio)
 
     def read(pins):
-        super().read(pins)
+        return super().read(pins)
 
 class Fake_IO_proto(protocols):
     def configure(pins, value):

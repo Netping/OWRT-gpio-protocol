@@ -27,6 +27,3 @@ config device
 	option sig_OUT_UP 'GPIO7-output'
 	option sig_OUT_DOWN 'GPIO8-output'
 	option sig_IN 'GPIO9-input'
-	option sig_IN_2 'GPIO10-input'
-	option sig_OTHER 'GPIO11-io'
-	option sig_OTHER_2 'GPIO12-io'
