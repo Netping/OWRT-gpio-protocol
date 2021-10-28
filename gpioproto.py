@@ -3,9 +3,12 @@ import os
 from threading import Thread
 from threading import Lock
 from time import sleep
+from journal import journal
 
 
 
+
+module_name = "GPIO Protocol"
 
 class device:
     name = ""
@@ -51,34 +54,42 @@ class D_Triger_IO_proto(protocols):
                 trig_gpio = p['gpio']
 
         if not (trig_gpio and out_up_gpio and out_down_gpio):
-            print("Error: wrong ping configuration! Check gpioconf for device")
+            #print("Error: wrong ping configuration! Check gpioconf for device")
+            journal.WriteLog(module_name, "Normal", "error", "wrong ping configuration! Check gpioconf for device")
             return
 
         if value.upper() == 'ON':
             if os.system("echo \"1\" > /sys/class/gpio/gpio" + out_up_gpio + "/value"):
-                print("Error: can't set value for gpio " + out_up_gpio)
+                #print("Error: can't set value for gpio " + out_up_gpio)
+                journal.WriteLog(module_name, "Normal", "error", "can't set value for gpio " + out_up_gpio)
 
             if os.system("echo \"0\" > /sys/class/gpio/gpio" + out_down_gpio + "/value"):
-                print("Error: can't set value for gpio " + out_down_gpio)
+                #print("Error: can't set value for gpio " + out_down_gpio)
+                journal.WriteLog(module_name, "Normal", "error", "can't set value for gpio " + out_up_gpio)
 
         elif value.upper() == 'OFF':
             if os.system("echo \"0\" > /sys/class/gpio/gpio" + out_up_gpio + "/value"):
-                print("Error: can't set value for gpio " + out_up_gpio)
+                #print("Error: can't set value for gpio " + out_up_gpio)
+                journal.WriteLog(module_name, "Normal", "error", "can't set value for gpio " + out_up_gpio)
 
             if os.system("echo \"1\" > /sys/class/gpio/gpio" + out_down_gpio + "/value"):
-                print("Error: can't set value for gpio " + out_down_gpio)
+                #print("Error: can't set value for gpio " + out_down_gpio)
+                journal.WriteLog(module_name, "Normal", "error", "can't set value for gpio " + out_up_gpio)
         else:
-            print('Error: unknown value')
+            #print('Error: unknown value')
+            journal.WriteLog(module_name, "Normal", "error", "unknown value")
             return
 
         #turn on CLK for 100ms
         if os.system("echo \"1\" > /sys/class/gpio/gpio" + trig_gpio + "/value"):
-            print("Error: can't set value for gpio " + trig_gpio)
+            #print("Error: can't set value for gpio " + trig_gpio)
+            journal.WriteLog(module_name, "Normal", "error", "can't set value for gpio " + trig_gpio)
 
         sleep(0.1)
 
         if os.system("echo \"0\" > /sys/class/gpio/gpio" + trig_gpio + "/value"):
-            print("Error: can't set value for gpio " + trig_gpio)
+            #print("Error: can't set value for gpio " + trig_gpio)
+            journal.WriteLog(module_name, "Normal", "error", "can't set value for gpio " + trig_gpio)
 
     def read(pins):
         trig_gpio = None
@@ -96,27 +107,32 @@ class D_Triger_IO_proto(protocols):
                 trig_gpio = p['gpio']
 
         if not (trig_gpio and pull_up_gpio):
-            print("Error: wrong pin reading! Check gpioconf for device")
+            #print("Error: wrong pin reading! Check gpioconf for device")
+            journal.WriteLog(module_name, "Normal", "error", "wrong pin reading! Check gpioconf for device")
             return
 
         #init reading
         if os.system("echo \"1\" > /sys/class/gpio/gpio" + pull_up_gpio + "/value"):
-            print("Error: can't set value for gpio " + pull_up_gpio)
+            #print("Error: can't set value for gpio " + pull_up_gpio)
+            journal.WriteLog(module_name, "Normal", "error", "can't set value for gpio " + pull_up_gpio)
 
         #turn on CLK for 100ms
         if os.system("echo \"1\" > /sys/class/gpio/gpio" + trig_gpio + "/value"):
-            print("Error: can't set value for gpio " + trig_gpio)
+            #print("Error: can't set value for gpio " + trig_gpio)
+            journal.WriteLog(module_name, "Normal", "error", "can't set value for gpio " + trig_gpio)
 
         sleep(0.1)
 
         if os.system("echo \"0\" > /sys/class/gpio/gpio" + trig_gpio + "/value"):
-            print("Error: can't set value for gpio " + trig_gpio)
+            #print("Error: can't set value for gpio " + trig_gpio)
+            journal.WriteLog(module_name, "Normal", "error", "can't set value for gpio " + trig_gpio)
 
         ret = super().read(pins)
 
         #deinit reading
         if os.system("echo \"0\" > /sys/class/gpio/gpio" + pull_up_gpio + "/value"):
-            print("Error: can't set value for gpio " + pull_up_gpio)
+            #print("Error: can't set value for gpio " + pull_up_gpio)
+            journal.WriteLog(module_name, "Normal", "error", "can't set value for gpio " + pull_up_gpio)
 
         return ret
 
@@ -137,28 +153,34 @@ class D_triger_Relay_proto(protocols):
                 trig_gpio = p['gpio']
 
         if not (trig_gpio and relay_gpio):
-            print("Error: wrong ping configuration! Check gpioconf for device")
+            #print("Error: wrong ping configuration! Check gpioconf for device")
+            journal.WriteLog(module_name, "Normal", "error", "wrong ping configuration! Check gpioconf for device")
             return
 
         if value.upper() == 'ON':
             if os.system("echo \"1\" > /sys/class/gpio/gpio" + relay_gpio + "/value"):
-                print("Error: can't set value for gpio " + relay_gpio)
+                #print("Error: can't set value for gpio " + relay_gpio)
+                journal.WriteLog(module_name, "Normal", "error", "can't set value for gpio " + relay_gpio)
 
         elif value.upper() == 'OFF':
             if os.system("echo \"0\" > /sys/class/gpio/gpio" + relay_gpio + "/value"):
-                print("Error: can't set value for gpio " + relay_gpio)
+                #print("Error: can't set value for gpio " + relay_gpio)
+                journal.WriteLog(module_name, "Normal", "error", "can't set value for gpio " + relay_gpio)
         else:
-            print('Error: unknown value')
+            #print('Error: unknown value')
+            journal.WriteLog(module_name, "Normal", "error", "unknown value")
             return
 
         #turn on CLK for 100ms
         if os.system("echo \"1\" > /sys/class/gpio/gpio" + trig_gpio + "/value"):
-            print("Error: can't set value for gpio " + trig_gpio)
+            #print("Error: can't set value for gpio " + trig_gpio)
+            journal.WriteLog(module_name, "Normal", "error", "can't set value for gpio " + trig_gpio)
 
         sleep(0.1)
 
         if os.system("echo \"0\" > /sys/class/gpio/gpio" + trig_gpio + "/value"):
-            print("Error: can't set value for gpio " + trig_gpio)
+            #print("Error: can't set value for gpio " + trig_gpio)
+            journal.WriteLog(module_name, "Normal", "error", "can't set value for gpio " + trig_gpio)
 
     def read(pins):
         return super().read(pins)
@@ -292,18 +314,21 @@ class GPIOProto:
                         if e.protocol != Fake_IO_proto:
                             #export new pin
                             if os.system("echo \"" + pin['gpio'] + "\" > /sys/class/gpio/export"):
-                                print("Error: can't export new pin " + pin['gpio'])
+                                #print("Error: can't export new pin " + pin['gpio'])
+                                journal.WriteLog(module_name, "Normal", "error", "can't export new pin " + pin['gpio'])
 
                             #set direction
                             direction = GPIOProto.direction_map[pin['direction']]
                             if direction != 'other':
                                 if os.system("echo \"" + direction + "\" > /sys/class/gpio/gpio" + pin['gpio'] + "/direction"):
-                                    print("Error: can't set direction to " + direction + "for gpio" + pin['gpio'])
+                                    #print("Error: can't set direction to " + direction + "for gpio" + pin['gpio'])
+                                    journal.WriteLog(module_name, "Normal", "error", "can't set direction to " + direction + "for gpio" + pin['gpio'])
 
                             #set value to 0 if it output
                             if direction == 'out':
                                 if os.system("echo \"0\" > /sys/class/gpio/gpio" + pin['gpio'] + "/value"):
-                                    print("Error: can't set output gpio" + pin['gpio'] + "to low")
+                                    #print("Error: can't set output gpio" + pin['gpio'] + "to low")
+                                    journal.WriteLog(module_name, "Normal", "error", "can't set output gpio" + pin['gpio'] + "to low")
                         else:
                             print("echo \"" + pin['gpio'] + "\" > /sys/class/gpio/export")
                             #set direction
@@ -334,11 +359,13 @@ class GPIOProto:
 
                             if e.protocol != Fake_IO_proto:
                                 if os.system("echo \"" + direction + "\" > /sys/class/gpio/gpio" + p['gpio'] + "/direction"):
-                                    print("Error: can't set direction to " + direction + "for gpio" + p['gpio'])
+                                    #print("Error: can't set direction to " + direction + "for gpio" + p['gpio'])
+                                    journal.WriteLog(module_name, "Normal", "error", "can't set direction to " + direction + "for gpio" + p['gpio'])
 
                                 if direction == 'out':
                                     if os.system("echo \"0\" > /sys/class/gpio/gpio" + p['gpio'] + "/value"):
-                                        print("Error: can't set output gpio" + p['gpio'] + "to low")
+                                        #print("Error: can't set output gpio" + p['gpio'] + "to low")
+                                        journal.WriteLog(module_name, "Normal", "error", "can't set output gpio" + p['gpio'] + "to low")
                             else:
                                 print("echo \"" + direction + "\" > /sys/class/gpio/gpio" + p['gpio'] + "/direction")
 
