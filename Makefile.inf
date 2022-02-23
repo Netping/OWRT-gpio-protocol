@@ -1,0 +1,59 @@
+SECTION="NetPing modules"
+CATEGORY="Base"
+TITLE="OWRT-GPIO-Protocol"
+
+PKG_NAME="OWRT-GPIO-Protocol"
+PKG_VERSION="1.1"
+PKG_RELEASE=4
+PKG_DEPENDS=OWRT-log
+
+CONF_FILE=gpioconf
+DIRECTCONF_FILE=directionconf
+CONF_DIR=/etc/config/
+
+MODULE_FILES=gpioproto.py
+MODULE_FILES_DIR=/usr/lib/python3.7/
+
+ETC_FILES=
+ETC_FILES_DIR=/etc/netping/gpio/
+
+INSTALL_DIR=
+
+TESTS_SRC_DIR=Tests
+
+
+all: build preinstall install configure 
+
+ipk: build install
+	
+build:
+	@echo "Nothing to do"
+
+preinstall:
+	@echo "Nothing to do"
+
+configure:
+	@echo "Nothing to do"
+
+install:
+ifneq ($(INSTALL_DIR),)
+	mkdir -p $(INSTALL_DIR)$(CONF_DIR)
+	mkdir -p $(INSTALL_DIR)$(MODULE_FILES_DIR)
+endif
+	cp $(CONF_FILE) $(INSTALL_DIR)/$(CONF_DIR)
+	cp $(DIRECTCONF_FILE) $(INSTALL_DIR)/$(CONF_DIR)
+ifneq ($(INSTALL_DIR),)
+	for f in $(MODULE_FILES); do cp $${f} $(INSTALL_DIR)/$(MODULE_FILES_DIR); done
+	cp -r $(TESTS_SRC_DIR) $(INSTALL_DIR)
+else	
+	for f in $(MODULE_FILES); do cp $${f} $(MODULE_FILES_DIR); done
+endif
+
+clean:
+ifeq ($(INSTALL_DIR),)
+	rm -f $(CONF_DIR)$(CONF_FILE)
+	rm -f $(CONF_DIR)$(DIRECTCONF_FILE)
+	for f in $(MODULE_FILES); do rm -f $(MODULE_FILES_DIR)$${f}; done
+else
+	rm -rf $(INSTALL_DIR)
+endif
