@@ -39,21 +39,19 @@ install:
 ifneq ($(INSTALL_DIR),)
 	mkdir -p $(INSTALL_DIR)$(CONF_DIR)
 	mkdir -p $(INSTALL_DIR)$(MODULE_FILES_DIR)
+	mkdir -p $(INSTALL_DIR)$(ETC_FILES_DIR)
 endif
 	cp $(CONF_FILE) $(INSTALL_DIR)/$(CONF_DIR)
 	cp $(DIRECTCONF_FILE) $(INSTALL_DIR)/$(CONF_DIR)
-ifneq ($(INSTALL_DIR),)
 	for f in $(MODULE_FILES); do cp $${f} $(INSTALL_DIR)/$(MODULE_FILES_DIR); done
-	cp -r $(TESTS_SRC_DIR) $(INSTALL_DIR)
-else	
-	for f in $(MODULE_FILES); do cp $${f} $(MODULE_FILES_DIR); done
-endif
+	cp -r $(TESTS_SRC_DIR) $(INSTALL_DIR)$(ETC_FILES_DIR)
 
 clean:
 ifeq ($(INSTALL_DIR),)
 	rm -f $(CONF_DIR)$(CONF_FILE)
 	rm -f $(CONF_DIR)$(DIRECTCONF_FILE)
 	for f in $(MODULE_FILES); do rm -f $(MODULE_FILES_DIR)$${f}; done
+	rm -rf $(ETC_FILES_DIR)
 else
 	rm -rf $(INSTALL_DIR)
 endif
