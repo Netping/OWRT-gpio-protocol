@@ -41,6 +41,7 @@ ifneq ($(INSTALL_DIR),)
 	mkdir -p $(INSTALL_DIR)$(MODULE_FILES_DIR)
 	mkdir -p $(INSTALL_DIR)$(ETC_FILES_DIR)
 endif
+	mkdir -p $(ETC_FILES_DIR)
 	cp $(CONF_FILE) $(INSTALL_DIR)/$(CONF_DIR)
 	cp $(DIRECTCONF_FILE) $(INSTALL_DIR)/$(CONF_DIR)
 	for f in $(MODULE_FILES); do cp $${f} $(INSTALL_DIR)/$(MODULE_FILES_DIR); done
