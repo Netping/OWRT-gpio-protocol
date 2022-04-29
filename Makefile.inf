@@ -1,8 +1,8 @@
 SECTION="NetPing modules"
 CATEGORY="Base"
-TITLE="OWRT-GPIO-Protocol"
+TITLE="OWRT-gpio-protocol"
 
-PKG_NAME="OWRT-GPIO-Protocol"
+PKG_NAME="OWRT-gpio-protocol"
 PKG_VERSION="1.1"
 PKG_RELEASE=5
 PKG_DEPENDS=OWRT-log
