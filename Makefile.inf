@@ -4,7 +4,7 @@ TITLE="OWRT-gpio-protocol"
 
 PKG_NAME="OWRT-gpio-protocol"
 PKG_VERSION="0.1"
-PKG_RELEASE=6
+PKG_RELEASE=7
 PKG_DEPENDS=OWRT-log
 
 CONF_FILE=gpioconf
@@ -39,9 +39,8 @@ install:
 ifneq ($(INSTALL_DIR),)
 	mkdir -p $(INSTALL_DIR)$(CONF_DIR)
 	mkdir -p $(INSTALL_DIR)$(MODULE_FILES_DIR)
-	mkdir -p $(INSTALL_DIR)$(ETC_FILES_DIR)
 endif
-	mkdir -p $(ETC_FILES_DIR)
+	mkdir -p $(INSTALL_DIR)$(ETC_FILES_DIR)
 	cp $(CONF_FILE) $(INSTALL_DIR)/$(CONF_DIR)
 	cp $(DIRECTCONF_FILE) $(INSTALL_DIR)/$(CONF_DIR)
 	for f in $(MODULE_FILES); do cp $${f} $(INSTALL_DIR)/$(MODULE_FILES_DIR); done
